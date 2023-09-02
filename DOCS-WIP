@@ -2,3 +2,22 @@ This file is intended to note docs changes that are being made by commits so
 that people working on the documentation know that changes are needed. This
 includes entries that would make sense for the migration guide or release notes.
 
+The path names in WORKDIR have been simplified to remove PE and PR and just use PV. This change
+also applies to the path to stamp files via STAMP.
+
+Changes have been made to the way source control versions are handled in PV. Instead
+of being injected into PV, these are now injected via PKGV at package generation time.
+This further simplifies directory names using PV and means the resolution of revsisions
+can be more controled and predictable at the bitbake level. Previously, PV could be
+expanded at any point during parsing, the expansion point is now much more predicatable.
+
+The code now only injects the revsision information to PKGV, if ends with a "+"
+character, which was our standard convention for this. As such, SRCPV is no longer
+needed/used and is now simply empty. The variable can be removed from PV.
+
+One change of behaviour is that for git SRC_URI entries, invalid revisions that could never
+be a sha will be assumed to be tags and a resolution will be attempted during parsing. This
+will trigger parsing errors. Recipes should raise SkipRecipe rather than set dummy invalid
+revisions.
+
+
