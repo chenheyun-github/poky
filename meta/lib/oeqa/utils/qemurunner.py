@@ -444,6 +444,7 @@ class QemuRunner:
         self.logger.debug("Waiting at most %d seconds for login banner (%s)" %
                           (self.boottime, time.strftime("%D %H:%M:%S")))
         endtime = time.time() + self.boottime
+        endtime2 = time.time() + self.boottime - 60
         filelist = [self.server_socket, self.runqemu.stdout]
         reachedlogin = False
         stopread = False
@@ -455,6 +456,9 @@ class QemuRunner:
                 sread, swrite, serror = select.select(filelist, [], [], 5)
             except InterruptedError:
                 continue
+            if time.time() > endtime2 and not sread and qemusock:
+                self.logger.warning('Forcing a read of serial port')
+                sread = [qemusock]
             for file in sread:
                 if file is self.server_socket:
                     qemusock, addr = self.server_socket.accept()
@@ -782,8 +786,8 @@ class LoggingThread(threading.Thread):
                     self.readsock.sendall(bytes("cat /proc/consoles\n", "utf-8"))
                     time.sleep(0.1)
                     self.readsock.sendall(bytes("dmesg\n", "utf-8"))
-                    time.sleep(0.1)
-                    self.readsock.sendall(bytes("killall getty\n", "utf-8"))
+                    #time.sleep(0.1)
+                    #self.readsock.sendall(bytes("killall getty\n", "utf-8"))
                     data = True
                     while data:
                         try:
