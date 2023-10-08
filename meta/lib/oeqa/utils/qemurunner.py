@@ -470,13 +470,16 @@ class QemuRunner:
                 else:
                     # try to avoid reading only a single character at a time
                     time.sleep(0.1)
-                    if hasattr(file, 'read'):
-                        read = file.read(1024)
-                    elif hasattr(file, 'recv'):
-                        read = file.recv(1024)
-                    else:
-                        self.logger.error('Invalid file type: %s\n%s' % (file))
-                        read = b''
+                    try:
+                        if hasattr(file, 'read'):
+                            read = file.read(1024)
+                        elif hasattr(file, 'recv'):
+                            read = file.recv(1024)
+                        else:
+                            self.logger.error('Invalid file type: %s\n%s' % (file))
+                            read = b''
+                    except BlockingIOError:
+                        continue
 
                     self.logger.debug2('Partial boot log:\n%s' % (read.decode('utf-8', errors='backslashreplace')))
                     data = data + read
